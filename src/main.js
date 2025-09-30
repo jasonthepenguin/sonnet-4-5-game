@@ -252,6 +252,105 @@ towerPositions.forEach((pos, idx) => {
     flags.push({ mesh: flag, offset: idx * 0.5 });
 });
 
+// Clouds in the sky
+const cloudMaterial = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.6,
+    roughness: 1.0
+});
+
+const clouds = [];
+for (let i = 0; i < 20; i++) {
+    const cloudGroup = new THREE.Group();
+
+    // Create puffy cloud from multiple spheres
+    const numPuffs = 3 + Math.floor(Math.random() * 3);
+    for (let j = 0; j < numPuffs; j++) {
+        const puffSize = 2 + Math.random() * 2;
+        const puffGeometry = new THREE.SphereGeometry(puffSize, 8, 8);
+        const puff = new THREE.Mesh(puffGeometry, cloudMaterial);
+        puff.position.x = (Math.random() - 0.5) * 6;
+        puff.position.y = (Math.random() - 0.5) * 2;
+        puff.position.z = (Math.random() - 0.5) * 4;
+        cloudGroup.add(puff);
+    }
+
+    cloudGroup.position.x = (Math.random() - 0.5) * 150;
+    cloudGroup.position.y = 35 + Math.random() * 25;
+    cloudGroup.position.z = (Math.random() - 0.5) * 150;
+
+    scene.add(cloudGroup);
+    clouds.push({
+        group: cloudGroup,
+        speed: 0.5 + Math.random() * 1,
+        direction: Math.random() > 0.5 ? 1 : -1
+    });
+}
+
+// Trees scattered around
+const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x4d3319 });
+const leavesMaterial = new THREE.MeshStandardMaterial({ color: 0x2d5016 });
+
+for (let i = 0; i < 30; i++) {
+    const x = (Math.random() - 0.5) * 160;
+    const z = (Math.random() - 0.5) * 160;
+
+    // Avoid castle and spawn area
+    if (Math.abs(x) < 20 && Math.abs(z) < 40) continue;
+    if (Math.abs(x) < 20 && z > -40 && z < -10) continue;
+
+    // Tree trunk
+    const trunkHeight = 3 + Math.random() * 2;
+    const trunk = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.3, 0.4, trunkHeight, 8),
+        trunkMaterial
+    );
+    trunk.position.set(x, trunkHeight / 2, z);
+    trunk.castShadow = true;
+    trunk.receiveShadow = true;
+    scene.add(trunk);
+
+    // Tree leaves
+    const leaves = new THREE.Mesh(
+        new THREE.SphereGeometry(2 + Math.random(), 8, 8),
+        leavesMaterial
+    );
+    leaves.position.set(x, trunkHeight + 1.5, z);
+    leaves.castShadow = true;
+    leaves.receiveShadow = true;
+    scene.add(leaves);
+}
+
+// Rocks scattered around
+const rockMaterial = new THREE.MeshStandardMaterial({
+    color: 0x6b6b6b,
+    roughness: 0.95
+});
+
+for (let i = 0; i < 25; i++) {
+    const x = (Math.random() - 0.5) * 140;
+    const z = (Math.random() - 0.5) * 140;
+
+    // Avoid castle area
+    if (Math.abs(x) < 20 && z > -40 && z < -10) continue;
+
+    const rockSize = 0.5 + Math.random() * 1.5;
+    const rock = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(rockSize, 0),
+        rockMaterial
+    );
+    rock.position.set(x, rockSize * 0.5, z);
+    rock.rotation.set(
+        Math.random() * Math.PI,
+        Math.random() * Math.PI,
+        Math.random() * Math.PI
+    );
+    rock.castShadow = true;
+    rock.receiveShadow = true;
+    scene.add(rock);
+}
+
 // Flowers scattered around
 const flowerColors = [0xff69b4, 0xffb6c1, 0xffd700, 0xff8c00, 0xda70d6, 0xffffff];
 
@@ -365,6 +464,15 @@ function animate() {
         }
 
         positions.needsUpdate = true;
+    });
+
+    // Animate clouds slowly drifting
+    clouds.forEach(cloudData => {
+        cloudData.group.position.x += cloudData.speed * delta * cloudData.direction;
+
+        // Wrap around if cloud goes too far
+        if (cloudData.group.position.x > 100) cloudData.group.position.x = -100;
+        if (cloudData.group.position.x < -100) cloudData.group.position.x = 100;
     });
 
     if (controls.isLocked) {
