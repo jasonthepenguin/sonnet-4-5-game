@@ -213,13 +213,13 @@ wall4.receiveShadow = true;
 scene.add(wall4);
 
 // Gate entrance
-const gateGeometry = new THREE.BoxGeometry(3, 5, 0.5);
+const gateGeometry = new THREE.BoxGeometry(3, 5, 0.3);
 const gateMaterial = new THREE.MeshStandardMaterial({
     color: 0x3d2817,
     roughness: 1.0
 });
 const gate = new THREE.Mesh(gateGeometry, gateMaterial);
-gate.position.set(0, 2.5, -15.5);
+gate.position.set(0, 2.5, -15.3);
 scene.add(gate);
 
 // Gate arch
@@ -294,7 +294,7 @@ controls.addEventListener('unlock', () => {
 });
 
 // Movement
-const moveSpeed = 5;
+const moveSpeed = 15;
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
 
