@@ -230,7 +230,8 @@ arch.rotation.y = Math.PI / 2;
 arch.position.set(0, 5.2, -16);
 scene.add(arch);
 
-// Decorative flags on towers
+// Decorative flags on towers (with wave animation)
+const flags = [];
 towerPositions.forEach((pos, idx) => {
     const flagPoleGeometry = new THREE.CylinderGeometry(0.1, 0.1, 4);
     const flagPoleMaterial = new THREE.MeshStandardMaterial({ color: 0x2c2c2c });
@@ -238,7 +239,7 @@ towerPositions.forEach((pos, idx) => {
     flagPole.position.set(pos[0], 30, pos[2]);
     scene.add(flagPole);
 
-    const flagGeometry = new THREE.PlaneGeometry(2, 1.2);
+    const flagGeometry = new THREE.PlaneGeometry(2, 1.2, 20, 10);
     const flagColors = [0xff0000, 0x0000ff, 0xffff00, 0x00ff00];
     const flagMaterial = new THREE.MeshStandardMaterial({
         color: flagColors[idx],
@@ -247,6 +248,8 @@ towerPositions.forEach((pos, idx) => {
     const flag = new THREE.Mesh(flagGeometry, flagMaterial);
     flag.position.set(pos[0] + 1, 31, pos[2]);
     scene.add(flag);
+
+    flags.push({ mesh: flag, offset: idx * 0.5 });
 });
 
 // Flowers scattered around
@@ -345,6 +348,24 @@ function animate() {
     requestAnimationFrame(animate);
 
     const delta = clock.getDelta();
+    const time = clock.getElapsedTime();
+
+    // Animate flags with wave effect
+    flags.forEach(flagData => {
+        const flag = flagData.mesh;
+        const positions = flag.geometry.attributes.position;
+
+        for (let i = 0; i < positions.count; i++) {
+            const x = positions.getX(i);
+            const y = positions.getY(i);
+
+            // Create wave effect based on x position
+            const wave = Math.sin(x * 3 + time * 3 + flagData.offset) * 0.15 * (x / 2 + 1);
+            positions.setZ(i, wave);
+        }
+
+        positions.needsUpdate = true;
+    });
 
     if (controls.isLocked) {
         // Flying camera controls
